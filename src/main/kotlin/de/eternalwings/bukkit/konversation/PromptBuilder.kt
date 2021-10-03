@@ -12,6 +12,7 @@ import org.bukkit.conversations.ConversationContext
 import org.bukkit.conversations.Prompt
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
+import java.lang.IllegalStateException
 import java.util.function.BiFunction
 import java.util.function.Function
 import java.util.regex.Pattern
@@ -236,7 +237,7 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * from inside that prompt.
      */
     fun retry() {
-        val parent = parentPrompt ?: throw IllegalArgumentException("There's no previous prompt to retry.")
+        val parent = parentPrompt ?: throw IllegalStateException("There's no previous prompt to retry.")
         attachPrompt(parent)
         finished = true
     }
