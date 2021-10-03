@@ -17,7 +17,7 @@ class SimpleRegexPrompt(
     private var next: ChainablePrompt? = null
 
     override fun getPromptText(context: ConversationContext): String {
-        return messageResolver.getMessageInContext(context)
+        return messageResolver.apply(context)
     }
 
     override fun acceptValidatedInput(context: ConversationContext, input: String): Prompt? {

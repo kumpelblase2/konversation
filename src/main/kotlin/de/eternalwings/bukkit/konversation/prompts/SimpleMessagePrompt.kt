@@ -12,7 +12,7 @@ class SimpleMessagePrompt(private val messageResolver: MessageResolver, private 
     private var next: ChainablePrompt? = null
 
     override fun getPromptText(context: ConversationContext): String {
-        return messageResolver.getMessageInContext(context)
+        return messageResolver.apply(context)
     }
 
     override fun getNextPrompt(context: ConversationContext): Prompt? {
