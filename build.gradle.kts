@@ -17,6 +17,9 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.3.1")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
 }
 
 val sources by tasks.register<Jar>("sourcesJar") {
