@@ -14,6 +14,12 @@ class SimpleSelectionPrompt(
 ) : FixedSetPrompt(*items), ChainablePrompt {
     private var next: ChainablePrompt? = null
 
+    constructor(
+        messageResolver: MessageResolver,
+        items: Set<String>,
+        callback: PromptBuilder.(String, ConversationContext) -> Unit
+    ) : this(messageResolver, items.toTypedArray(), callback)
+
     override fun getPromptText(context: ConversationContext): String {
         return messageResolver.apply(context)
     }

@@ -134,6 +134,28 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
     }
 
     /**
+     * Defines a list of options the player can select from. Any other
+     * input will not be valid and this reset.
+     * @param message Message to display
+     * @param options The possible values the player can choose from
+     * @param callback Callback to invoke with the input from the user to configure the next prompts.
+     */
+    fun select(message: String, options: Set<String>, callback: InnerBuilderCallback<String>) {
+        select(ConstantMessageResolver(message), options, callback)
+    }
+
+    /**
+     * Defines a list of options the player can select from. Any other
+     * input will not be valid and this reset.
+     * @param message Message to display
+     * @param options The possible values the player can choose from
+     * @param callback Callback to invoke with the input from the user to configure the next prompts.
+     */
+    fun select(message: MessageResolver, options: Set<String>, callback: InnerBuilderCallback<String>) {
+        attachPrompt(SimpleSelectionPrompt(message, options, callback))
+    }
+
+    /**
      * Accepts only messages that fit the given RegEx pattern.
      * @param message Message to display
      * @param pattern The RegEx pattern to match against
