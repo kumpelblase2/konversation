@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "de.eternalwings.bukkit"
-version = "1.0.0"
+version = "1.1.0"
 val gitUrl = "https://github.com/kumpelblase2/konversation"
 val repoUrl = "https://repo.eternalwings.de/" + if (project.version.toString().endsWith("-SNAPSHOT")) "snapshots" else "releases"
 
