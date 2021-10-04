@@ -9,7 +9,6 @@ import de.eternalwings.bukkit.konversation.prompts.SimplePlayerPrompt
 import de.eternalwings.bukkit.konversation.prompts.SimpleRegexPrompt
 import de.eternalwings.bukkit.konversation.prompts.SimpleSelectionPrompt
 import org.bukkit.conversations.ConversationContext
-import org.bukkit.conversations.Prompt
 import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import java.lang.IllegalStateException
@@ -19,10 +18,23 @@ import java.util.regex.Pattern
 
 /**
  * Builder for creating a chain of prompts.
+ *
+ * ```
+ * val prompt = buildPrompts {
+ *     message("Display a message")
+ *     text("Accept text input") { input, context ->
+ *         message("The input was: $input")
+ *     }
+ * }
+ * ```
+ *
+ * This builds up a chain of prompts that can then be passed
+ * to a conversation factory for creating an actual
+ * conversation with a player.
+ *
  * @see PromptBuilder for possible prompts to configure.
  */
-@Suppress("unused")
-fun buildPrompts(configure: PromptBuilder.() -> Unit): Prompt {
+fun buildPrompts(configure: PromptBuilder.() -> Unit): ChainablePrompt {
     val builder = PromptBuilder()
     builder.configure()
     return builder.finish()
@@ -31,7 +43,7 @@ fun buildPrompts(configure: PromptBuilder.() -> Unit): Prompt {
 typealias ContextCallback = (ConversationContext) -> Unit
 typealias InnerBuilderCallback<T> = PromptBuilder.(T, ConversationContext) -> Unit
 
-@Suppress("unused")
+@Suppress("unused", "MemberVisibilityCanBePrivate")
 class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : AbstractPromptBuilder() {
 
     /**
@@ -58,8 +70,8 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message The message to display
      * @param callback Callback to invoke before going to the next prompt
      */
-    fun message(message: String, callback: ContextCallback? = null) {
-        message(ConstantMessageResolver(message), callback)
+    fun message(message: String, callback: ContextCallback? = null): ChainablePrompt {
+        return message(ConstantMessageResolver(message), callback)
     }
 
     /**
@@ -67,8 +79,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message The message to display
      * @param callback Callback to invoke before going to the next prompt
      */
-    fun message(message: MessageResolver, callback: ContextCallback? = null) {
-        attachPrompt(SimpleMessagePrompt(message, callback))
+    fun message(message: MessageResolver, callback: ContextCallback? = null): ChainablePrompt {
+        return SimpleMessagePrompt(message, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -76,8 +90,8 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message Message to display
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun text(message: String, callback: InnerBuilderCallback<String>) {
-        text(ConstantMessageResolver(message), callback)
+    fun text(message: String, callback: InnerBuilderCallback<String>): ChainablePrompt {
+        return text(ConstantMessageResolver(message), callback)
     }
 
     /**
@@ -85,8 +99,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message Message to display
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun text(message: MessageResolver, callback: InnerBuilderCallback<String>) {
-        attachPrompt(SimpleInputPrompt(message, callback))
+    fun text(message: MessageResolver, callback: InnerBuilderCallback<String>): ChainablePrompt {
+        return SimpleInputPrompt(message, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -96,8 +112,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message Message to display
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun confirm(message: String, callback: InnerBuilderCallback<Boolean>) {
-        attachPrompt(SimpleBoolPrompt(ConstantMessageResolver(message), callback))
+    fun confirm(message: String, callback: InnerBuilderCallback<Boolean>): ChainablePrompt {
+        return SimpleBoolPrompt(ConstantMessageResolver(message), callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -107,8 +125,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message Message to display
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun confirm(message: MessageResolver, callback: InnerBuilderCallback<Boolean>) {
-        attachPrompt(SimpleBoolPrompt(message, callback))
+    fun confirm(message: MessageResolver, callback: InnerBuilderCallback<Boolean>): ChainablePrompt {
+        return SimpleBoolPrompt(message, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -118,8 +138,8 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param options The possible values the player can choose from
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun select(message: String, vararg options: String, callback: InnerBuilderCallback<String>) {
-        select(ConstantMessageResolver(message), options = options, callback)
+    fun select(message: String, vararg options: String, callback: InnerBuilderCallback<String>): ChainablePrompt {
+        return select(ConstantMessageResolver(message), options = options, callback)
     }
 
     /**
@@ -129,8 +149,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param options The possible values the player can choose from
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun select(message: MessageResolver, vararg options: String, callback: InnerBuilderCallback<String>) {
-        attachPrompt(SimpleSelectionPrompt(message, options, callback))
+    fun select(message: MessageResolver, vararg options: String, callback: InnerBuilderCallback<String>): ChainablePrompt {
+        return SimpleSelectionPrompt(message, options, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -140,8 +162,8 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param options The possible values the player can choose from
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun select(message: String, options: Set<String>, callback: InnerBuilderCallback<String>) {
-        select(ConstantMessageResolver(message), options, callback)
+    fun select(message: String, options: Set<String>, callback: InnerBuilderCallback<String>): ChainablePrompt {
+        return select(ConstantMessageResolver(message), options, callback)
     }
 
     /**
@@ -151,8 +173,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param options The possible values the player can choose from
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun select(message: MessageResolver, options: Set<String>, callback: InnerBuilderCallback<String>) {
-        attachPrompt(SimpleSelectionPrompt(message, options, callback))
+    fun select(message: MessageResolver, options: Set<String>, callback: InnerBuilderCallback<String>): ChainablePrompt {
+        return SimpleSelectionPrompt(message, options, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -161,8 +185,8 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param pattern The RegEx pattern to match against
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun regex(message: String, pattern: Pattern, callback: InnerBuilderCallback<String>) {
-        regex(ConstantMessageResolver(message), pattern, callback)
+    fun regex(message: String, pattern: Pattern, callback: InnerBuilderCallback<String>): ChainablePrompt {
+        return regex(ConstantMessageResolver(message), pattern, callback)
     }
 
     /**
@@ -171,8 +195,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param pattern The RegEx pattern to match against
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun regex(message: MessageResolver, pattern: Pattern, callback: InnerBuilderCallback<String>) {
-        attachPrompt(SimpleRegexPrompt(message, pattern, callback))
+    fun regex(message: MessageResolver, pattern: Pattern, callback: InnerBuilderCallback<String>): ChainablePrompt {
+        return SimpleRegexPrompt(message, pattern, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -181,8 +207,8 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param plugin The plugin the is connected to the server
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun choosePlayer(message: String, plugin: Plugin, callback: InnerBuilderCallback<Player>) {
-        choosePlayer(ConstantMessageResolver(message), plugin, callback)
+    fun choosePlayer(message: String, plugin: Plugin, callback: InnerBuilderCallback<Player>): ChainablePrompt {
+        return choosePlayer(ConstantMessageResolver(message), plugin, callback)
     }
 
     /**
@@ -191,8 +217,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param plugin The plugin the is connected to the server
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun choosePlayer(message: MessageResolver, plugin: Plugin, callback: InnerBuilderCallback<Player>) {
-        attachPrompt(SimplePlayerPrompt(message, plugin, callback))
+    fun choosePlayer(message: MessageResolver, plugin: Plugin, callback: InnerBuilderCallback<Player>): ChainablePrompt {
+        return SimplePlayerPrompt(message, plugin, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -200,8 +228,8 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message Message to display
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun number(message: String, callback: InnerBuilderCallback<Number>) {
-        number(ConstantMessageResolver(message), callback)
+    fun number(message: String, callback: InnerBuilderCallback<Number>): ChainablePrompt {
+        return number(ConstantMessageResolver(message), callback)
     }
 
     /**
@@ -209,8 +237,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message Message to display
      * @param callback Callback to invoke with the input from the user to configure the next prompts.
      */
-    fun number(message: MessageResolver, callback: InnerBuilderCallback<Number>) {
-        attachPrompt(SimpleNumberPrompt(message, callback))
+    fun number(message: MessageResolver, callback: InnerBuilderCallback<Number>): ChainablePrompt {
+        return SimpleNumberPrompt(message, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -233,8 +263,10 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
         validator: Function<String, Boolean>,
         converter: Function<String, T>,
         callback: InnerBuilderCallback<T>
-    ) {
-        attachPrompt(SimpleChainableConvertingPrompt(messageResolver, validator, converter, callback))
+    ): ChainablePrompt {
+        return SimpleChainableConvertingPrompt(messageResolver, validator, converter, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
@@ -250,17 +282,37 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
         validator: BiFunction<ConversationContext, String, Boolean>,
         converter: Function<String, T>,
         callback: InnerBuilderCallback<T>
-    ) {
-        attachPrompt(SimpleChainableConvertingPrompt(messageResolver, validator, converter, callback))
+    ): ChainablePrompt {
+        return SimpleChainableConvertingPrompt(messageResolver, validator, converter, callback).also {
+            attachPrompt(it)
+        }
     }
 
     /**
      * Will restart last prompt that asked for input. Can only be called
-     * from inside that prompt.
+     * from inside the callback for that prompt. After this, no further
+     * prompts may be configured as this "closes the loop" in a sense.
+     *
+     * @see [continueWith]
      */
     fun retry() {
         val parent = parentPrompt ?: throw IllegalStateException("There's no previous prompt to retry.")
-        attachPrompt(parent)
+        continueWith(parent)
+    }
+
+    /**
+     * Instruct the chain to continue with the given chain of prompt(s).
+     * This allows for going to a previous prompt of the same chain as
+     * well as injecting a completely separate chain into the current
+     * one. Because it is expected that the given prompt already is
+     * part of an existing chain, _no further prompts may be configured._
+     * Otherwise, it would cause the prompts in that chain to be
+     * overwritten.
+     *
+     * @param next the prompt chain to attach
+     */
+    fun continueWith(next: ChainablePrompt) {
+        attachPrompt(next)
         finished = true
     }
 }

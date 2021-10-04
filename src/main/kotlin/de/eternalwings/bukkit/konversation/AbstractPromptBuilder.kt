@@ -1,7 +1,5 @@
 package de.eternalwings.bukkit.konversation
 
-import org.bukkit.conversations.Prompt
-
 abstract class AbstractPromptBuilder {
     private var start: ChainablePrompt? = null
     private var current: ChainablePrompt? = null
@@ -22,7 +20,7 @@ abstract class AbstractPromptBuilder {
         } ?: prompt
     }
 
-    internal fun injectChain(next: ChainablePrompt?): Prompt? {
+    internal fun injectChain(next: ChainablePrompt?): ChainablePrompt? {
         finished = false
         next?.let { attachPrompt(next) }
         val start = start
@@ -31,7 +29,7 @@ abstract class AbstractPromptBuilder {
         return start
     }
 
-    internal fun finish(): Prompt {
+    internal fun finish(): ChainablePrompt {
         val start = start
         this.start = null
         this.current = null

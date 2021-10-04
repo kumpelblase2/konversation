@@ -146,4 +146,31 @@ class PromptBuilderTest {
         Assertions.assertEquals(prompt, prompt.acceptInput(context, null))
         Assertions.assertEquals(Prompt.END_OF_CONVERSATION, prompt.acceptInput(context, "5"))
     }
+
+    @Test
+    fun testJumpBack() {
+        val context = ConversationContext(null, mock(), HashMap())
+        val prompt = buildPrompts {
+            val numberInput = number("Message") { _, _ -> }
+            message("Between")
+            continueWith(numberInput)
+        }
+
+        Assertions.assertEquals("Message", prompt.getPromptText(context))
+        val next = prompt.acceptInput(context, "1")!!
+        Assertions.assertEquals("Between", next.getPromptText(context))
+        val restart = next.acceptInput(context, null)
+        Assertions.assertEquals(prompt, restart)
+    }
+
+    @Test
+    fun testJumpOutFromInput() {
+        val context = ConversationContext(null, mock(), HashMap())
+        val prompt = buildPrompts {
+            val start = message("Between")
+            text("Input") { _, _ ->
+                continueWith(start)
+            }
+        }
+    }
 }
