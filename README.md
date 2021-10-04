@@ -31,7 +31,7 @@ val firstPrompt = buildPrompts {
     custom(
         { "Rate your experience between 1 and 10:" },
         { input -> 
-            return try {
+            try {
                 val number = Integer.valueOf(input)
                 number >= 1 && number <= 10
             } catch(ex: NumberFormatException) {
@@ -43,9 +43,9 @@ val firstPrompt = buildPrompts {
         context["rating"] = value
     }
     message("Thank you for taking this survey!") { context ->
-        val name: String = context["name"]
-        val experience: String = context["experience"]
-        val rating: Int = context["rating"]
+        val name: String = context["name"]!!
+        val experience: String = context["experience"]!!
+        val rating: Int = context["rating"]!!
         SurveryCollector.collectEntry(name, experience, rating)
     }
 }
