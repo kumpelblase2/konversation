@@ -16,7 +16,7 @@ class SimpleMessagePrompt(private val messageResolver: MessageResolver, private 
     }
 
     override fun getNextPrompt(context: ConversationContext): Prompt? {
-        callback?.invoke(context)
+        callback?.accept(context)
         return next
     }
 

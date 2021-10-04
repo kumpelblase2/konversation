@@ -13,34 +13,11 @@ import org.bukkit.entity.Player
 import org.bukkit.plugin.Plugin
 import java.lang.IllegalStateException
 import java.util.function.BiFunction
+import java.util.function.Consumer
 import java.util.function.Function
 import java.util.regex.Pattern
 
-/**
- * Builder for creating a chain of prompts.
- *
- * ```
- * val prompt = buildPrompts {
- *     message("Display a message")
- *     text("Accept text input") { input, context ->
- *         message("The input was: $input")
- *     }
- * }
- * ```
- *
- * This builds up a chain of prompts that can then be passed
- * to a conversation factory for creating an actual
- * conversation with a player.
- *
- * @see PromptBuilder for possible prompts to configure.
- */
-fun buildPrompts(configure: PromptBuilder.() -> Unit): ChainablePrompt {
-    val builder = PromptBuilder()
-    builder.configure()
-    return builder.finish()
-}
-
-typealias ContextCallback = (ConversationContext) -> Unit
+typealias ContextCallback = Consumer<ConversationContext>
 typealias InnerBuilderCallback<T> = PromptBuilder.(T, ConversationContext) -> Unit
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
@@ -70,6 +47,7 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message The message to display
      * @param callback Callback to invoke before going to the next prompt
      */
+    @JvmOverloads
     fun message(message: String, callback: ContextCallback? = null): ChainablePrompt {
         return message(ConstantMessageResolver(message), callback)
     }
@@ -79,6 +57,7 @@ class PromptBuilder(private val parentPrompt: ChainablePrompt? = null) : Abstrac
      * @param message The message to display
      * @param callback Callback to invoke before going to the next prompt
      */
+    @JvmOverloads
     fun message(message: MessageResolver, callback: ContextCallback? = null): ChainablePrompt {
         return SimpleMessagePrompt(message, callback).also {
             attachPrompt(it)
