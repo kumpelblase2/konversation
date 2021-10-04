@@ -45,11 +45,66 @@ class PromptBuilderTest {
     }
 
     @Test
+    fun testCompileReadmeExample() {
+        val collectEntry: (String, String, Int) -> Unit = { _, _, _ -> }
+
+        buildPrompts {
+            message("Welcome to this survey!")
+            message("This dialog will guide your through.")
+            text("Please enter your name:") { input, context ->
+                if (input.isEmpty()) {
+                    retry()
+                } else {
+                    context["name"] = input
+                }
+            }
+            select("Please specify your minecraft gaming experience:", "Beginner", "Advanced", "Expert") { input, context ->
+                context["experience"] = input
+            }
+            custom(
+                { "Rate your experience between 1 and 10:" },
+                { input ->
+                    try {
+                        val number = Integer.valueOf(input)
+                        number >= 1 && number <= 10
+                    } catch (ex: NumberFormatException) {
+                        false
+                    }
+                },
+                Integer::valueOf
+            ) { value, context ->
+                context["rating"] = value
+            }
+            message("Thank you for taking this survey!") { context ->
+                val name: String = context["name"]!!
+                val experience: String = context["experience"]!!
+                val rating: Int = context["rating"]!!
+                collectEntry(name, experience, rating)
+            }
+        }
+    }
+
+    @Test
     fun testNoStrayRetry() {
         assertThrows<IllegalStateException> {
             buildPrompts {
                 retry()
             }
+        }
+    }
+
+    @Test
+    fun testNoPromptsAfterRetry() {
+        val context = ConversationContext(null, mock(), HashMap())
+        val prompt = buildPrompts {
+            text("Message") { _, _ ->
+                retry()
+                message("This will never happen.")
+            }
+        }
+
+        assertThrows<IllegalStateException> {
+            prompt.acceptInput(context, "")
         }
     }
 
